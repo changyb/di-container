@@ -156,6 +156,47 @@ public class ContainerTest {
 
         @Nested
         public class FiledInjection {
+            static class ComponentWithFieldInjection {
+                @Inject
+                Dependency dependency;
+            }
+
+            static class SubclassWithFieldInjection extends ComponentWithFieldInjection {}
+
+            // TODO inject field
+            // 经典学派
+            @Test
+            public void should_inject_dependency_via_field() {
+                Dependency dependency = new Dependency() {
+                };
+                config.bind(Dependency.class, dependency);
+                config.bind(ComponentWithFieldInjection.class, ComponentWithFieldInjection.class);
+
+                ComponentWithFieldInjection component = config.getContext().get(ComponentWithFieldInjection.class).get();
+                assertSame(dependency, component.dependency);
+            }
+
+            @Test
+            public void should_inject_dependency_via_superclass_inject_field() {
+                Dependency dependency = new Dependency() {
+                };
+                config.bind(Dependency.class, dependency);
+                config.bind(SubclassWithFieldInjection.class, SubclassWithFieldInjection.class);
+
+                SubclassWithFieldInjection component = config.getContext().get(SubclassWithFieldInjection.class).get();
+                assertSame(dependency, component.dependency);
+
+            }
+
+            // TODO throw exception if field is final
+
+            // TODO throw exception if dependency not found
+            // TODO throw exception if cyclic dependency
+            @Test
+            public void should_include_field_dependency_in_dependencies() {
+                ConstructorInjectProvider<ComponentWithFieldInjection> provider = new ConstructorInjectProvider<>(ComponentWithFieldInjection.class);
+                assertArrayEquals(new Class<?>[] {Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
+            }
 
         }
 
