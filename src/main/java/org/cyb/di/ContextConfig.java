@@ -6,22 +6,12 @@ public class ContextConfig {
     private Map<Class<?>, ComponentProvider<?>> providers = new HashMap<>();
 
     public <T> void bind(Class<T> type, T instance) {
-        providers.put(type, new ComponentProvider<T>() {
-            @Override
-            public T get(Context context) {
-                return instance;
-            }
-
-            @Override
-            public List<Class<?>> getDependencies() {
-                return List.of();
-            }
-        });
+        providers.put(type, (ComponentProvider<T>) context -> instance);
     }
 
     public <T, U extends T>
     void bind(Class<T> type, Class<U> implementation) {
-        providers.put(type, new ConstructorInjectProvider<>(implementation));;
+        providers.put(type, new InjectProvider<>(implementation));;
     }
 
     public Context getContext() {
@@ -54,7 +44,9 @@ public class ContextConfig {
 
     interface ComponentProvider<T> {
         T get(Context context);
-        List<Class<?>> getDependencies();
+        default List<Class<?>> getDependencies() {
+            return List.of();
+        }
     }
 
 
