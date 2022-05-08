@@ -1,10 +1,12 @@
 package org.cyb.di;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Provider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -14,11 +16,15 @@ import static org.mockito.Mockito.*;
 public class InjectionTest {
     private Dependency dependency = mock(Dependency.class);
 
+    private Provider<Dependency> dependencyProvider = mock(Provider.class);
+
     private Context context = mock(Context.class);
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws NoSuchFieldException {
+        ParameterizedType type = (ParameterizedType)InjectionTest.class.getDeclaredField("dependencyProvider").getGenericType();
         when(context.get(eq(Dependency.class))).thenReturn(Optional.of(dependency));
+        when(context.get(eq(type))).thenReturn(Optional.of(dependencyProvider));
     }
 
     @Nested
@@ -56,7 +62,24 @@ public class InjectionTest {
                 InjectProvider<InjectConstructor> provider = new InjectProvider<>(InjectConstructor.class);
                 assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
             }
+
+            static class ProviderInjectConstructor {
+                Provider<Dependency> dependency;
+
+                @Inject
+                public ProviderInjectConstructor(Provider<Dependency> dependency) {
+                    this.dependency = dependency;
+                }
+            }
+
+            @Test
+            public void should_inject_provider_via_inject_constructor() {
+                ProviderInjectConstructor instance = new InjectProvider<>(ProviderInjectConstructor.class).get(context);
+                assertSame(instance.dependency, dependencyProvider);
+            }
         }
+
+
 
         @Nested
         class IllegelInjectConstructor {
@@ -92,7 +115,6 @@ public class InjectionTest {
                 });
             }
         }
-
     }
 
     @Nested
@@ -126,6 +148,18 @@ public class InjectionTest {
                 InjectProvider<ComponentWithFieldInjection> provider = new InjectProvider<>(ComponentWithFieldInjection.class);
                 assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
             }
+
+            static class ProviderInjectField {
+                @Inject
+                Provider<Dependency> dependency;
+            }
+
+            @Test
+            public void should_inject_provider_via_inject_constructor() {
+                ProviderInjectField instance = new InjectProvider<>(ProviderInjectField.class).get(context);
+                assertSame(dependencyProvider, instance.dependency);
+            }
+
         }
 
         @Nested
@@ -238,6 +272,20 @@ public class InjectionTest {
                 assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
             }
 
+            static class ProviderInjectMethod {
+                Provider<Dependency> dependency;
+
+                @Inject
+                void install(Provider<Dependency> dependency) {
+                    this.dependency = dependency;
+                }
+            }
+
+            @Test
+            public void should_inject_provider_via_inject_constructor() {
+                ProviderInjectMethod instance = new InjectProvider<>(ProviderInjectMethod.class).get(context);
+                assertSame(dependencyProvider, instance.dependency);
+            }
         }
 
         @Nested
