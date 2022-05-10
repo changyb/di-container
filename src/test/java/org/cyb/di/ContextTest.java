@@ -3,6 +3,7 @@ package org.cyb.di;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.internal.util.collections.Sets;
@@ -116,6 +117,21 @@ public class ContextTest {
             public AnotherDependencyDependedComponent(Component component) {
                 this.component = component;
             }
+        }
+
+        static class MissingDependencyProviderConstructor implements Component {
+            @Inject
+            public MissingDependencyProviderConstructor(Provider<Dependency> dependency) {
+            }
+        }
+
+        @Test
+        public void should_throw_exception_if_provider_dependency_not_found() {
+            config.bind(Component.class, MissingDependencyProviderConstructor.class);
+            DependencyNotFoundException dependencyNotFoundException = assertThrows(DependencyNotFoundException.class, () -> {
+                config.getContext();
+            });
+            assertEquals(Dependency.class, dependencyNotFoundException.getDependency());
         }
 
         @Test

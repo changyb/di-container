@@ -3,10 +3,12 @@ package org.cyb.di;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,11 +22,14 @@ public class InjectionTest {
 
     private Context context = mock(Context.class);
 
+    private ParameterizedType dependencyProviderType;
+
+
     @BeforeEach
     public void setUp() throws NoSuchFieldException {
-        ParameterizedType type = (ParameterizedType)InjectionTest.class.getDeclaredField("dependencyProvider").getGenericType();
+        dependencyProviderType = (ParameterizedType)InjectionTest.class.getDeclaredField("dependencyProvider").getGenericType();
         when(context.get(eq(Dependency.class))).thenReturn(Optional.of(dependency));
-        when(context.get(eq(type))).thenReturn(Optional.of(dependencyProvider));
+        when(context.get(eq(dependencyProviderType))).thenReturn(Optional.of(dependencyProvider));
     }
 
     @Nested
@@ -61,6 +66,12 @@ public class InjectionTest {
             public void should_include_dependency_from_inject_constructor() {
                 InjectProvider<InjectConstructor> provider = new InjectProvider<>(InjectConstructor.class);
                 assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
+            }
+
+            @Test
+            public void should_include_provider_type_from_inject_constructor() {
+                InjectProvider<ProviderInjectConstructor> provider = new InjectProvider<>(ProviderInjectConstructor.class);
+                assertArrayEquals(new Type[]{dependencyProviderType}, provider.getDependencyTypes().toArray(new Type[0]));
             }
 
             static class ProviderInjectConstructor {
@@ -149,13 +160,19 @@ public class InjectionTest {
                 assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
             }
 
+            @Test
+            public void should_include_provider_type_from_inject_field() {
+                InjectProvider<ProviderInjectField> provider = new InjectProvider<>(ProviderInjectField.class);
+                assertArrayEquals(new Type[] {dependencyProviderType}, provider.getDependencyTypes().toArray(new Type[0]));
+            }
+
             static class ProviderInjectField {
                 @Inject
                 Provider<Dependency> dependency;
             }
 
             @Test
-            public void should_inject_provider_via_inject_constructor() {
+            public void should_inject_provider_via_inject_field() {
                 ProviderInjectField instance = new InjectProvider<>(ProviderInjectField.class).get(context);
                 assertSame(dependencyProvider, instance.dependency);
             }
@@ -272,6 +289,12 @@ public class InjectionTest {
                 assertArrayEquals(new Class<?>[]{Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
             }
 
+            @Test
+            public void should_include_provider_type_from_inject_method() {
+                InjectProvider<ProviderInjectMethod> provider = new InjectProvider<>(ProviderInjectMethod.class);
+                assertArrayEquals(new Type[] {dependencyProviderType}, provider.getDependencyTypes().toArray(new Type[0]));
+            }
+
             static class ProviderInjectMethod {
                 Provider<Dependency> dependency;
 
@@ -282,7 +305,7 @@ public class InjectionTest {
             }
 
             @Test
-            public void should_inject_provider_via_inject_constructor() {
+            public void should_inject_provider_via_inject_method() {
                 ProviderInjectMethod instance = new InjectProvider<>(ProviderInjectMethod.class).get(context);
                 assertSame(dependencyProvider, instance.dependency);
             }

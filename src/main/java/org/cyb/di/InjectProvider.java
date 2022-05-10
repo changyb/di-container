@@ -82,6 +82,13 @@ class InjectProvider<T> implements ContextConfig.ComponentProvider<T> {
                 ).toList();
     }
 
+    @Override
+    public List<Type> getDependencyTypes() {
+        return Stream.concat(Stream.concat(stream(injectConstructor.getParameters()).map(Parameter::getParameterizedType),
+                injectFields.stream().map(Field::getGenericType)),
+                injectMethods.stream().flatMap(m -> stream(m.getParameters()).map(Parameter::getParameterizedType))).toList();
+    }
+
     private static <T> List<T> traverse(Class<?> component, BiFunction<List<T>, Class<?>, List<T>> function) {
         List<T> members = new ArrayList<>();
         Class<?> current = component;
