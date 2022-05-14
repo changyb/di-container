@@ -3,10 +3,7 @@ package org.cyb.di;
 import jakarta.inject.Inject;
 
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
@@ -75,15 +72,7 @@ class InjectProvider<T> implements ContextConfig.ComponentProvider<T> {
     }
 
     @Override
-    public List<Class<?>> getDependencies() {
-        return Stream.concat(Stream.concat(stream(injectConstructor.getParameterTypes()),
-                injectFields.stream().map(Field::getType)),
-                injectMethods.stream().flatMap(m -> stream(m.getParameterTypes()))
-                ).toList();
-    }
-
-    @Override
-    public List<Type> getDependencyTypes() {
+    public List<Type> getDependencies() {
         return Stream.concat(Stream.concat(stream(injectConstructor.getParameters()).map(Parameter::getParameterizedType),
                 injectFields.stream().map(Field::getGenericType)),
                 injectMethods.stream().flatMap(m -> stream(m.getParameters()).map(Parameter::getParameterizedType))).toList();
@@ -109,21 +98,16 @@ class InjectProvider<T> implements ContextConfig.ComponentProvider<T> {
 
     private static Object[] toDependencies(Context context, Executable executable) {
         return stream(executable.getParameters()).map(
-                p -> {
-                    Type type = p.getParameterizedType();
-                    if (type instanceof ParameterizedType) {
-                        return context.get((ParameterizedType) type).get();
-                    } else {
-                        return context.get((Class<?>) type).get();
-                    }
-                }
+                p -> toDependency(p.getParameterizedType(), context)
         ).toArray(Object[]::new);
     }
 
+    private static Object toDependency(Type type, Context context) {
+        return context.get(type).get();
+    }
+
     private static Object toDependency(Context context, Field field) {
-        Type type = field.getGenericType();
-        if (type instanceof ParameterizedType) return context.get((ParameterizedType) type).get();
-        return context.get((Class<?>) type).get();
+        return toDependency(field.getGenericType(), context);
     }
 
     private static boolean isOverride(Method m, Method o) {
