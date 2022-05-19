@@ -1,5 +1,6 @@
 package org.cyb.di;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Objects;
@@ -11,9 +12,11 @@ public interface Context {
     class Ref<ComponentType> {
         private Type container;
         private Class<?> component;
+        private Annotation qualifier;
 
-        public Ref(Type type) {
+        public Ref(Type type, Annotation qualifier) {
             init(type);
+            this.qualifier = qualifier;
         }
 
         public Ref(Class<ComponentType> component) {
@@ -21,11 +24,15 @@ public interface Context {
         }
 
         public static Ref of(Type type) {
-            return new Ref(type);
+            return new Ref(type, null);
         }
 
         public static <ComponentType> Ref<ComponentType> of (Class<ComponentType> component) {
             return new Ref(component);
+        }
+
+        public static <ComponentType> Ref<ComponentType> of (Class<ComponentType> component, Annotation qualifier) {
+            return new Ref(component, qualifier);
         }
 
         public Type getContainer() {
@@ -34,6 +41,10 @@ public interface Context {
 
         public Class<?> getComponent() {
             return component;
+        }
+
+        public Annotation getQualifier() {
+            return qualifier;
         }
 
         public boolean isContainer() {

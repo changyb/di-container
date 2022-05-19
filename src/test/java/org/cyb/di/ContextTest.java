@@ -1,12 +1,14 @@
 package org.cyb.di;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.inject.Provider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.internal.util.collections.Sets;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.List;
@@ -61,8 +63,72 @@ public class ContextTest {
 
             assertFalse(context.get(new Context.Ref<List<Component>>(){}).isPresent());
         }
-    }
 
+        @Nested
+        public class WithQualifier {
+            //TODO binding component with qualifier
+            @Test
+            public void should_bind_instance_with_qualifier() {
+                Component instance = new Component() {
+                };
+                config.bind(Component.class, instance, new NamedLiteral("ChosenOne"));
+                Context context = config.getContext();
+
+                Component chosenOne = context.get(Context.Ref.of(Component.class, new NamedLiteral("ChosenOne"))).get();
+                assertSame(instance, chosenOne);
+
+            }
+
+            @Test
+            public void should_bind_component_with_qualifier() {
+                Dependency dependency = new Dependency() {
+                };
+                config.bind(Dependency.class, dependency);
+                config.bind(InjectionTest.ConstructorInjection.Injection.InjectConstructor.class,
+                        InjectionTest.ConstructorInjection.Injection.InjectConstructor.class,
+                        new NamedLiteral("ChosenOne"));
+
+                Context context = config.getContext();
+                InjectionTest.ConstructorInjection.Injection.InjectConstructor chosenOne = context.get(Context.Ref.of(InjectionTest.ConstructorInjection.Injection.InjectConstructor.class, new NamedLiteral("ChosenOne"))).get();
+                assertSame(dependency, chosenOne.dependency);
+            }
+            //TODO binding component with multi qualifiers
+            @Test
+            public void should_bind_instance_with_multi_qualifier() {
+                Component instance = new Component() {
+                };
+
+                config.bind(Component.class, instance, new NamedLiteral("ChosenOne"),
+                        new NamedLiteral("Skywalker"));
+                Context context = config.getContext();;
+                Component chosenOne = context.get(Context.Ref.of(Component.class, new NamedLiteral("ChosenOne"))).get();
+                Component skywalker = context.get(Context.Ref.of(Component.class, new NamedLiteral("Skywalker"))).get();
+
+                assertSame(instance, chosenOne);
+                assertSame(instance, skywalker);
+            }
+
+            @Test
+            public void should_bind_component_with_multi_qualifier() {
+                Dependency dependency = new Dependency() {
+                };
+                config.bind(Dependency.class, dependency);
+                config.bind(InjectionTest.ConstructorInjection.Injection.InjectConstructor.class,
+                        InjectionTest.ConstructorInjection.Injection.InjectConstructor.class,
+                        new NamedLiteral("ChosenOne"),
+                        new NamedLiteral("Skywalker")
+                );
+
+                Context context = config.getContext();
+                InjectionTest.ConstructorInjection.Injection.InjectConstructor chosenOne = context.get(Context.Ref.of(InjectionTest.ConstructorInjection.Injection.InjectConstructor.class, new NamedLiteral("ChosenOne"))).get();
+                InjectionTest.ConstructorInjection.Injection.InjectConstructor skywalker = context.get(Context.Ref.of(InjectionTest.ConstructorInjection.Injection.InjectConstructor.class, new NamedLiteral("Skywalker"))).get();
+                assertSame(dependency, chosenOne.dependency);
+                assertSame(dependency, skywalker.dependency);
+            }
+
+            //TODO throw illegal component if illegal qualifier
+        }
+    }
 
     @Nested
     public class DependencyCheck {
@@ -160,5 +226,12 @@ public class ContextTest {
             assertTrue(classes.contains(AnotherDependency.class));
         }
     }
+}
 
+record NamedLiteral(String value) implements Named {
+
+    @Override
+    public Class<? extends Annotation> annotationType() {
+        return Named.class;
+    }
 }
