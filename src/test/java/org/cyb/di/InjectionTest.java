@@ -26,8 +26,8 @@ public class InjectionTest {
     @BeforeEach
     public void setUp() throws NoSuchFieldException {
         dependencyProviderType = (ParameterizedType)InjectionTest.class.getDeclaredField("dependencyProvider").getGenericType();
-        when(context.get(eq(Context.Ref.of(Dependency.class)))).thenReturn(Optional.of(dependency));
-        when(context.get(eq(Context.Ref.of(dependencyProviderType)))).thenReturn(Optional.of(dependencyProvider));
+        when(context.get(eq(ComponentRef.of(Dependency.class)))).thenReturn(Optional.of(dependency));
+        when(context.get(eq(ComponentRef.of(dependencyProviderType)))).thenReturn(Optional.of(dependencyProvider));
     }
 
     @Nested
@@ -63,13 +63,13 @@ public class InjectionTest {
             @Test
             public void should_include_dependency_from_inject_constructor() {
                 InjectProvider<InjectConstructor> provider = new InjectProvider<>(InjectConstructor.class);
-                assertArrayEquals(new Context.Ref[]{Context.Ref.of(Dependency.class)}, provider.getDependencies().toArray(Context.Ref[]::new));
+                assertArrayEquals(new ComponentRef[]{ComponentRef.of(Dependency.class)}, provider.getDependencies().toArray(ComponentRef[]::new));
             }
 
             @Test
             public void should_include_provider_type_from_inject_constructor() {
                 InjectProvider<ProviderInjectConstructor> provider = new InjectProvider<>(ProviderInjectConstructor.class);
-                assertArrayEquals(new Context.Ref[]{Context.Ref.of(dependencyProviderType)}, provider.getDependencies().toArray(Context.Ref[]::new));
+                assertArrayEquals(new ComponentRef[]{ComponentRef.of(dependencyProviderType)}, provider.getDependencies().toArray(ComponentRef[]::new));
             }
 
             static class ProviderInjectConstructor {
@@ -92,35 +92,35 @@ public class InjectionTest {
 
         @Nested
         class IllegelInjectConstructor {
-            abstract class AbstractComponent implements Component {
+            abstract class AbstractTestComponent implements TestComponent {
                 @Inject
-                public AbstractComponent() {
+                public AbstractTestComponent() {
                 }
             }
 
             @Test
             public void should_throw_exception_if_component_is_abstract() {
                 assertThrows(IllegalComponentException.class,
-                        () -> new InjectProvider<>(AbstractComponent.class));
+                        () -> new InjectProvider<>(AbstractTestComponent.class));
             }
 
             @Test
             public void should_throw_exception_if_component_is_interface() {
                 assertThrows(IllegalComponentException.class,
-                        () -> new InjectProvider<>(AbstractComponent.class));
+                        () -> new InjectProvider<>(AbstractTestComponent.class));
             }
 
             @Test
             public void should_throw_exception_if_multi_inject_constructors_provided() {
                 assertThrows(IllegalComponentException.class, () -> {
-                    new InjectProvider<>(ComponentWithMultiInjectConstructors.class);
+                    new InjectProvider<>(TestComponentWithMultiInjectConstructors.class);
                 });
             }
 
             @Test
             public void should_throw_exception_if_no_inject_constructor_nor_default_constructor_provided() {
                 assertThrows(IllegalComponentException.class, () -> {
-                    new InjectProvider<>(ComponentWithNoInjectConstructorNorDefaultConstructor.class);
+                    new InjectProvider<>(TestComponentWithNoInjectConstructorNorDefaultConstructor.class);
                 });
             }
         }
@@ -155,13 +155,13 @@ public class InjectionTest {
             @Test
             public void should_include_dependency_from_field_dependency() {
                 InjectProvider<ComponentWithFieldInjection> provider = new InjectProvider<>(ComponentWithFieldInjection.class);
-                assertArrayEquals(new Context.Ref[]{Context.Ref.of(Dependency.class)}, provider.getDependencies().toArray(Context.Ref[]::new));
+                assertArrayEquals(new ComponentRef[]{ComponentRef.of(Dependency.class)}, provider.getDependencies().toArray(ComponentRef[]::new));
             }
 
             @Test
             public void should_include_provider_type_from_inject_field() {
                 InjectProvider<ProviderInjectField> provider = new InjectProvider<>(ProviderInjectField.class);
-                assertArrayEquals(new Context.Ref[] {Context.Ref.of(dependencyProviderType)}, provider.getDependencies().toArray(Context.Ref[]::new));
+                assertArrayEquals(new ComponentRef[] {ComponentRef.of(dependencyProviderType)}, provider.getDependencies().toArray(ComponentRef[]::new));
             }
 
             static class ProviderInjectField {
@@ -284,13 +284,13 @@ public class InjectionTest {
             @Test
             public void should_include_dependencies_from_inject_method() {
                 InjectProvider<InjectMethodWithDependency> provider = new InjectProvider<>(InjectMethodWithDependency.class);
-                assertArrayEquals(new Context.Ref[]{Context.Ref.of(Dependency.class)}, provider.getDependencies().toArray(Context.Ref[]::new));
+                assertArrayEquals(new ComponentRef[]{ComponentRef.of(Dependency.class)}, provider.getDependencies().toArray(ComponentRef[]::new));
             }
 
             @Test
             public void should_include_provider_type_from_inject_method() {
                 InjectProvider<ProviderInjectMethod> provider = new InjectProvider<>(ProviderInjectMethod.class);
-                assertArrayEquals(new Context.Ref[] {Context.Ref.of(dependencyProviderType)}, provider.getDependencies().toArray(Context.Ref[]::new));
+                assertArrayEquals(new ComponentRef[] {ComponentRef.of(dependencyProviderType)}, provider.getDependencies().toArray(ComponentRef[]::new));
             }
 
             static class ProviderInjectMethod {

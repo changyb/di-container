@@ -73,11 +73,11 @@ class InjectProvider<T> implements ContextConfig.ComponentProvider<T> {
 
 
     @Override
-    public List<Context.Ref> getDependencies() {
+    public List<ComponentRef> getDependencies() {
         return Stream.concat(Stream.concat(stream(injectConstructor.getParameters()).map(Parameter::getParameterizedType),
                         injectFields.stream().map(Field::getGenericType)),
                 injectMethods.stream().flatMap(m -> stream(m.getParameters()).map(Parameter::getParameterizedType)))
-                .map(Context.Ref::of).toList();
+                .map(ComponentRef::of).toList();
     }
 
     private static <T> List<T> traverse(Class<?> component, BiFunction<List<T>, Class<?>, List<T>> function) {
@@ -105,7 +105,7 @@ class InjectProvider<T> implements ContextConfig.ComponentProvider<T> {
     }
 
     private static Object toDependency(Type type, Context context) {
-        return context.get(Context.Ref.of(type)).get();
+        return context.get(ComponentRef.of(type)).get();
     }
 
     private static Object toDependency(Context context, Field field) {

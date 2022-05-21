@@ -24,7 +24,7 @@ public class ContainerTest {
     }
 }
 
-interface Component {
+interface TestComponent {
 }
 
 interface Dependency {
@@ -36,19 +36,19 @@ interface AnotherDependency {
 
 
 
-class ComponentWithMultiInjectConstructors implements Component {
+class TestComponentWithMultiInjectConstructors implements TestComponent {
     @Inject
-    public ComponentWithMultiInjectConstructors(String name, Double value) {
+    public TestComponentWithMultiInjectConstructors(String name, Double value) {
     }
 
     @Inject
-    public ComponentWithMultiInjectConstructors(String name) {
+    public TestComponentWithMultiInjectConstructors(String name) {
     }
 }
 
-class ComponentWithNoInjectConstructorNorDefaultConstructor implements Component {
+class TestComponentWithNoInjectConstructorNorDefaultConstructor implements TestComponent {
 
-    public ComponentWithNoInjectConstructorNorDefaultConstructor(String name) {
+    public TestComponentWithNoInjectConstructorNorDefaultConstructor(String name) {
     }
 }
 
