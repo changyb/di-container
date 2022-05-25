@@ -1,20 +1,21 @@
 package org.cyb.di;
 
 public class DependencyNotFoundException extends RuntimeException{
-    private Class<?> dependency;
+    private Component dependency;
 
-    public DependencyNotFoundException(Class<?> dependency, Class<?> component) {
+    private Component component;
+
+    public DependencyNotFoundException(Component dependency, Component component) {
         this.dependency = dependency;
         this.component = component;
+
     }
 
-    private Class<?> component;
-
-    public Class<?> getDependency() {
+    public Component getDependency() {
         return dependency;
     }
 
-    public Class<?> getComponent() {
+    public Component getComponent() {
         return component;
     }
 }

@@ -1,8 +1,10 @@
 package org.cyb.di;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.inject.Provider;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -88,8 +90,6 @@ public class InjectionTest {
             }
         }
 
-
-
         @Nested
         class IllegelInjectConstructor {
             abstract class AbstractTestComponent implements TestComponent {
@@ -122,6 +122,25 @@ public class InjectionTest {
                 assertThrows(IllegalComponentException.class, () -> {
                     new InjectProvider<>(TestComponentWithNoInjectConstructorNorDefaultConstructor.class);
                 });
+            }
+        }
+
+        @Nested
+        class WithQualifier {
+
+            static class InjectConstructor {
+                @Inject
+                public InjectConstructor(@Named("ChosenOne")Dependency dependency) {
+                }
+            }
+
+            @Test
+            public void should_include_qualifier_with_dependency() {
+                InjectProvider<InjectConstructor> provider = new InjectProvider<>(InjectConstructor.class);
+                assertArrayEquals(new ComponentRef<?>[]{
+                    ComponentRef.of(Dependency.class, new NamedLiteral("ChosenOne"))
+                }, provider.getDependencies().toArray(new ComponentRef[0]));
+
             }
         }
     }
