@@ -2,11 +2,11 @@ package org.cyb.di;
 
 import java.util.List;
 
-class SingletonProvider<T> implements ContextConfig.ComponentProvider<T> {
+class SingletonProvider<T> implements ComponentProvider<T> {
     private T singleton;
-    private ContextConfig.ComponentProvider<T> provider;
+    private ComponentProvider<T> provider;
 
-    public SingletonProvider(ContextConfig.ComponentProvider<T> provider) {
+    public SingletonProvider(ComponentProvider<T> provider) {
         this.provider = provider;
     }
 
